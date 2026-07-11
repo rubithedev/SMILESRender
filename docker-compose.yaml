@@ -1,9 +1,12 @@
 services:
   redis:
-    image: redis:7.4-alpine
+    image: redis:8.8.0-alpine
     container_name: smiles-render-redis
     ports:
       - 6379:6379
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
 
   smiles-render-web:
     build: .
@@ -20,6 +23,7 @@ services:
   celery-worker:
     build: .
     container_name: smiles-render-worker
+    working_dir: /app/src
     command: celery -A tasks worker --loglevel=info --pool=solo
     env_file:
       - .env
@@ -27,3 +31,7 @@ services:
       - redis
     environment:
       - REDIS_URL=redis://redis:6379/0
+
+volumes:
+  redis-data:
+    driver: local
