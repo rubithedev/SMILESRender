@@ -1,9 +1,43 @@
 services:
+  traefik:
+    image: traefik:v3.7.7
+    container_name: smiles-render-traefik
+    command:
+      - --api.dashboard=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+
+      # Redirect HTTP -> HTTPS
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+
+      # Let's Encrypt
+      - --certificatesresolvers.letsencrypt.acme.email=gabrielgrechuk@outlook.com
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+
+    ports:
+      - "80:80"
+      - "443:443"
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+
+    restart: unless-stopped
+
   redis:
-    image: redis:7.4-alpine
+    image: redis:8.8.0-alpine
     container_name: smiles-render-redis
     ports:
       - 6379:6379
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
 
   smiles-render-web:
     build: .
@@ -11,7 +45,7 @@ services:
     env_file:
       - .env
     ports:
-      - 3000:3000
+      - 127.0.0.1:3000:3000
     depends_on:
       - redis
     environment:
@@ -20,6 +54,7 @@ services:
   celery-worker:
     build: .
     container_name: smiles-render-worker
+    working_dir: /app/src
     command: celery -A tasks worker --loglevel=info --pool=solo
     env_file:
       - .env
@@ -27,3 +62,7 @@ services:
       - redis
     environment:
       - REDIS_URL=redis://redis:6379/0
+
+volumes:
+  redis-data:
+    driver: local

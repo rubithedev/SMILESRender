@@ -2,10 +2,9 @@
 
 Online tool to help creating images from molecule SMILES.
 
-
 ## Running the API
 
-### Docker compose
+### For Production with Docker Compose
 
 #### Requirements
 
@@ -15,12 +14,12 @@ Online tool to help creating images from molecule SMILES.
 #### Running
 
 ``` bash
-    docker compose up
+    docker compose up -d
 ```
 
-now you can check if the API is running by performing a `GET` in [localhost:3000/ping](http://localhost:3000/ping)
+`Docker Compose` will make sure to configure your `HTTP` and `HTTPS` connections and automatically map the respective `80` and `443` ports to the Smiles Render's `3000` application port.
 
-### Local
+### Local for development and tests
 
 #### Requirements
 
@@ -42,4 +41,4 @@ now you can check if the API is running by performing a `GET` in [localhost:3000
     python3 src/main.py
 ```
 
-now you can check if the API is running by performing a `GET` in [localhost:3000/ping](http://localhost:3000/ping)
+now you can check if the API is running by performing a `GET` in [localhost:3000/ping](http://localhost:3000/ping) or simply running the web application accessing [http://localhost:3000](http://localhost:3000).
